@@ -1,0 +1,690 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Conversation Class · Week 8 · Class 15 — Final Exam Practice</title>
+<style>
+  :root{
+    --purple:#5b2c91; --purple-dark:#3d1d63; --purple-light:#7e4cc4;
+    --lilac:#f3edfb; --lilac-mid:#e4d6f7; --gold:#f5b921;
+    --ink:#2b2440; --muted:#6b6480; --good:#1f9d57; --bad:#d64545;
+    --card:#ffffff; --line:#e0d4f0;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{
+    font-family:'Segoe UI',system-ui,-apple-system,sans-serif;
+    background:linear-gradient(150deg,#ede4fb 0%,#f7f3fc 55%,#fdf6e9 100%);
+    color:var(--ink);min-height:100vh;padding:24px 14px;line-height:1.6;
+  }
+  .wrap{max-width:760px;margin:0 auto;}
+  .card{
+    background:var(--card);border-radius:20px;padding:32px 30px;
+    box-shadow:0 14px 40px rgba(61,29,99,.14);border:1px solid var(--line);
+  }
+  .screen{display:none;}
+  .screen.active{display:block;animation:fade .35s ease;}
+  @keyframes fade{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:none;}}
+
+  .brand{font-size:.74rem;letter-spacing:.16em;text-transform:uppercase;
+    color:var(--purple-light);font-weight:700;margin-bottom:6px;}
+  h1{font-size:1.6rem;color:var(--purple-dark);line-height:1.25;margin-bottom:4px;}
+  .sub{color:var(--muted);font-size:.95rem;margin-bottom:22px;}
+  h2{font-size:1.15rem;color:var(--purple-dark);margin-bottom:4px;
+    display:flex;align-items:center;gap:9px;}
+  .tag{font-size:.7rem;letter-spacing:.1em;text-transform:uppercase;
+    background:var(--lilac-mid);color:var(--purple);padding:3px 9px;
+    border-radius:20px;font-weight:700;}
+  .intro-note{color:var(--muted);font-size:.9rem;margin:8px 0 18px;}
+
+  .progress{display:flex;gap:6px;margin-bottom:22px;}
+  .progress span{flex:1;height:7px;border-radius:6px;background:var(--lilac-mid);}
+  .progress span.done{background:var(--purple-light);}
+  .progress span.now{background:var(--gold);}
+
+  .passage{background:var(--lilac);border-left:4px solid var(--purple-light);
+    border-radius:0 12px 12px 0;padding:16px 18px;margin:14px 0 20px;font-size:.96rem;}
+  .passage h3{color:var(--purple-dark);font-size:1.02rem;margin-bottom:8px;}
+  .passage .dateline{font-size:.78rem;letter-spacing:.13em;text-transform:uppercase;
+    color:var(--purple-light);font-weight:700;margin-bottom:6px;}
+  .passage p{margin-bottom:10px;}
+
+  .q{margin:18px 0;padding-bottom:6px;}
+  .q .qtext{font-weight:600;margin-bottom:10px;}
+  .opt{display:block;border:1.6px solid var(--line);border-radius:11px;
+    padding:11px 14px;margin:7px 0;cursor:pointer;transition:.15s;font-size:.94rem;}
+  .opt:hover{border-color:var(--purple-light);background:var(--lilac);}
+  .opt.sel{border-color:var(--purple);background:var(--lilac-mid);font-weight:600;}
+  .opt.correct{border-color:var(--good);background:#e5f6ec;}
+  .opt.wrong{border-color:var(--bad);background:#fbe7e7;}
+  .opt input{margin-right:9px;}
+
+  .gap{margin:14px 0;font-size:.96rem;}
+  .gap label{font-weight:600;display:block;margin-bottom:6px;}
+  select,input[type=text],textarea{
+    font-family:inherit;font-size:.95rem;width:100%;padding:10px 12px;
+    border:1.6px solid var(--line);border-radius:10px;background:#fff;color:var(--ink);
+  }
+  select:focus,input:focus,textarea:focus{outline:none;border-color:var(--purple-light);}
+  textarea{resize:vertical;min-height:140px;}
+  .wordbank{display:flex;flex-wrap:wrap;gap:7px;margin:12px 0 6px;}
+  .chip{background:var(--lilac-mid);color:var(--purple-dark);font-weight:600;
+    font-size:.84rem;padding:5px 11px;border-radius:20px;}
+
+  .feedback{margin-top:14px;padding:13px 15px;border-radius:11px;font-size:.92rem;display:none;}
+  .feedback.show{display:block;}
+  .feedback.ok{background:#e5f6ec;color:#176b3d;border:1px solid #b6e2c6;}
+  .feedback.no{background:#fbe7e7;color:#9c2b2b;border:1px solid #f0bcbc;}
+  .feedback.info{background:var(--lilac);color:var(--purple-dark);border:1px solid var(--line);}
+
+  .btn{background:var(--purple);color:#fff;border:none;border-radius:12px;
+    padding:13px 26px;font-size:1rem;font-weight:700;cursor:pointer;
+    transition:.18s;font-family:inherit;margin-top:18px;}
+  .btn:hover{background:var(--purple-dark);transform:translateY(-1px);}
+  .btn.ghost{background:var(--lilac-mid);color:var(--purple-dark);}
+  .btnrow{display:flex;gap:10px;flex-wrap:wrap;}
+
+  .speak-box{background:var(--lilac);border-radius:14px;padding:18px;margin:14px 0;}
+  .timer{font-size:2.1rem;font-weight:800;color:var(--purple-dark);text-align:center;margin:6px 0;}
+  .mic-status{text-align:center;color:var(--muted);font-size:.9rem;margin-bottom:8px;}
+  .transcript{background:#fff;border:1.4px dashed var(--line);border-radius:10px;
+    padding:11px 13px;min-height:62px;font-size:.92rem;color:var(--ink);margin-top:10px;}
+  .pulse{display:inline-block;width:11px;height:11px;border-radius:50%;
+    background:var(--bad);margin-right:6px;animation:pulse 1s infinite;}
+  @keyframes pulse{0%,100%{opacity:1;}50%{opacity:.3;}}
+
+  .scorebig{font-size:3rem;font-weight:800;color:var(--purple-dark);text-align:center;}
+  .scoreline{text-align:center;color:var(--muted);margin-bottom:18px;}
+  .breakdown{border:1px solid var(--line);border-radius:12px;overflow:hidden;margin:14px 0;}
+  .breakdown div{display:flex;justify-content:space-between;padding:10px 15px;
+    border-bottom:1px solid var(--line);font-size:.93rem;}
+  .breakdown div:last-child{border-bottom:none;font-weight:700;background:var(--lilac);}
+
+  .checklist{font-size:.88rem;color:var(--muted);margin:8px 0 0;padding-left:18px;}
+  .checklist li{margin:3px 0;}
+  .success{background:#e5f6ec;border:1px solid #b6e2c6;color:#176b3d;
+    border-radius:12px;padding:16px;text-align:center;font-weight:600;display:none;margin-top:16px;}
+  .success.show{display:block;}
+  .tip{font-size:.86rem;color:var(--muted);font-style:italic;margin-top:6px;}
+  .dtable{width:100%;border-collapse:collapse;margin:12px 0;font-size:.84rem;}
+  .dtable th,.dtable td{border:1px solid var(--line);padding:7px 9px;text-align:left;vertical-align:top;}
+  .dtable th{background:var(--lilac-mid);color:var(--purple-dark);}
+  .dtable tr:nth-child(even) td{background:var(--lilac);}
+  .opts-list{margin:10px 0;padding-left:0;list-style:none;}
+  .opts-list li{background:var(--lilac);border:1px solid var(--line);border-radius:10px;
+    padding:11px 13px;margin:8px 0;font-size:.9rem;}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<!-- ============ CONFIG ============ -->
+<script>
+const CONFIG = {
+  FORM_URL: "https://docs.google.com/forms/d/e/1FAIpQLSdpV-n3g-5-UdGt7H7_dqgoDbSRkWwITqJgcov-njtV8ft6_g/formResponse",
+  ENTRY: {
+    studentName:  "entry.154629934",
+    classCode:    "entry.771629595",
+    session:      "entry.1564061356",
+    listening:    "entry.1994438750",
+    vocab:        "entry.1169985852",
+    writing:      "entry.66378887",
+    speaking:     "entry.665897330",
+    grammar:      "entry.1528226896",
+    percent:      "entry.543147037",
+    writingText:  "entry.301386877",
+    aiFeedback:   "entry.1035810181",
+    teacher:      "entry.1451249480"
+  },
+  CLASSES: [
+    {code:"3096", label:"3096 \u2014 Morning (9:00 AM) \u2014 Laura Ebel",   teacher:"Laura Ebel"},
+    {code:"3090", label:"3090 \u2014 Evening (6:30 PM) \u2014 Laura Ebel",   teacher:"Laura Ebel"}
+  ],
+  SESSION_LABEL: "Week 8 - Class 15"
+};
+</script>
+
+<div class="card">
+
+<!-- ===================== SCREEN 0 — START ===================== -->
+<div class="screen active" id="s0">
+  <div class="brand">English Class · SQA Education</div>
+  <h1>Final Exam Practice</h1>
+  <div class="sub">Conversation Course · Week 8 · Class 15<br>
+  <strong>Term III Review · Everything You've Learned</strong></div>
+
+  <div class="passage" style="border-left-color:var(--gold);">
+    <h3>Here's the plan 👋</h3>
+    <p>Five short sections that review the whole term. You'll <strong>listen</strong>
+    to a story, use vocabulary from every unit, write an <strong>analyst
+    report</strong> from real data, choose a <strong>speaking</strong> scenario,
+    and finish with a mixed grammar review — narrative tenses, comparatives,
+    passive voice, conditionals, the subjunctive, and more.</p>
+    <p>Work at your own pace. Nothing submits until you press Finish.</p>
+  </div>
+
+  <div class="gap">
+    <label>First, your name</label>
+    <input type="text" id="studentName" placeholder="Type your full name">
+  </div>
+  <div class="gap">
+    <label>Your class</label>
+    <select id="classSelect"></select>
+  </div>
+  <button class="btn" onclick="go(1)">Start →</button>
+</div>
+
+<!-- ===================== SCREEN 1 — READING ===================== -->
+<div class="screen" id="s1">
+  <div class="progress"><span class="now"></span><span></span><span></span><span></span><span></span></div>
+  <h2><span class="tag">1 · Listen</span> Comprehension</h2>
+  <div class="intro-note">Listen to the story below, then answer the questions.
+  You can replay it as many times as you need.</div>
+
+  <div class="passage">
+    <div class="dateline">Podcast · A Night to Remember</div>
+    <h3>The Day the Skies Opened</h3>
+    <iframe src="https://drive.google.com/file/d/1fIkXLluKaH4WmsJ5VQYLWDMRAQeR4trN/preview"
+      width="100%" height="80" allow="autoplay"
+      style="border:none;border-radius:10px;margin:6px 0;"></iframe>
+    <p style="font-size:.86rem;margin-bottom:0;">▶️ Tap play above. If the audio
+    won't load, <a href="https://drive.google.com/file/d/1fIkXLluKaH4WmsJ5VQYLWDMRAQeR4trN/view"
+    target="_blank" rel="noopener" style="color:var(--purple);font-weight:600;">open
+    it in a new tab</a>.</p>
+  </div>
+
+  <div id="readingQs"></div>
+  <button class="btn" onclick="go(2)">Next: Vocabulary →</button>
+</div>
+
+<!-- ===================== SCREEN 2 — VOCABULARY CLOZE ===================== -->
+<div class="screen" id="s2">
+  <div class="progress"><span class="done"></span><span class="now"></span><span></span><span></span><span></span></div>
+  <h2><span class="tag">2 · Vocabulary</span> The Workplace Shift</h2>
+  <div class="intro-note">Read the short story, then choose the best word from the
+  box for each blank. <strong>Two words are extra</strong> and will not be used.</div>
+
+  <div class="wordbank" id="wordbank"></div>
+  <div id="vocabQs"></div>
+  <button class="btn" onclick="go(3)">Next: Writing →</button>
+</div>
+
+<!-- ===================== SCREEN 3 — WRITING ===================== -->
+<div class="screen" id="s3">
+  <div class="progress"><span class="done"></span><span class="done"></span><span class="now"></span><span></span><span></span></div>
+  <h2><span class="tag">3 · Write</span> The Investment Report</h2>
+  <div class="intro-note">You are an analyst. Write <strong>7–9 sentences</strong>
+  for a report to your company about which business to invest in. Use the data in
+  the table to support your recommendation.</div>
+
+  <table class="dtable">
+    <tr><th>Data Category</th><th>Green Glow Cafe</th><th>Quick Drop Delivery</th></tr>
+    <tr><td>Business Type</td><td>Organic coffee shop chain</td><td>Local package delivery service</td></tr>
+    <tr><td>Financial Metric (Money Made)</td><td>$1.2M (up from $800K last year)</td><td>$4.5M (down from $4.8M last year)</td></tr>
+    <tr><td>5-Year Growth Forecast</td><td>+50% expected increase</td><td>+2% expected increase</td></tr>
+    <tr><td>Stakeholder Satisfaction</td><td>95% (happy customers and workers)</td><td>58% (recent complaints about delays)</td></tr>
+    <tr><td>Key Variable (Risk)</td><td>Cost of organic coffee beans</td><td>Cost of gas and van repairs</td></tr>
+    <tr><td>Recent Data Outlier</td><td>Opened 1 pop-up shop that tripled sales in July</td><td>1 delivery van broke down, causing a 1% delay</td></tr>
+  </table>
+
+  <div class="passage">
+    <p>💬 <strong>Useful phrases:</strong><br>
+    "After looking closely at every financial <strong>metric</strong>…"<br>
+    "When we <strong>aggregate</strong> the data for both companies, we can see…"<br>
+    "To decide which business to invest in, we must first <strong>analyze</strong>…"</p>
+  </div>
+
+  <textarea id="writingText" placeholder="After looking closely at every financial metric, I recommend that we invest in…"></textarea>
+  <ul class="checklist">
+    <li>7–9 sentences, written as an analyst's report</li>
+    <li>Use specific data from the table to support your choice</li>
+    <li>State a clear recommendation (which business, and why)</li>
+    <li>Use review vocabulary and at least one of the useful phrases</li>
+  </ul>
+  <div class="feedback info" id="writingFb"></div>
+  <button class="btn" onclick="checkWriting()">Check my writing</button>
+  <button class="btn ghost" id="writingNext" style="display:none;" onclick="go(4)">Next: Speaking →</button>
+</div>
+
+<!-- ===================== SCREEN 4 — SPEAKING ===================== -->
+<div class="screen" id="s4">
+  <div class="progress"><span class="done"></span><span class="done"></span><span class="done"></span><span class="now"></span><span></span></div>
+  <h2><span class="tag">4 · Speak ⭐</span> Build a Dialogue</h2>
+  <div class="intro-note">Choose <strong>one</strong> option below. Create and
+  speak <strong>both parts</strong> of a dialogue for <strong>1–2 minutes</strong>.
+  Use the target grammar and vocabulary for the option you choose.</div>
+
+  <ul class="opts-list">
+    <li><strong>Community News.</strong> You and a partner discuss a community news
+    story. You aren't sure all the information is true.<br>
+    <em>Grammar:</em> hedging language &amp; narrative tenses · <em>Vocab:</em> News and Impact</li>
+    <li><strong>New Home.</strong> You and your partner compare properties for a
+    new home (purchase or lease) — move-in date, condition, and so on.<br>
+    <em>Grammar:</em> emphatic comparatives &amp; passive voice · <em>Vocab:</em> Home Sweet Home</li>
+    <li><strong>Work Negotiation.</strong> A boss and employee negotiate a win-win
+    (salary, schedule, or title).<br>
+    <em>Grammar:</em> persuasive second conditionals &amp; subjunctive mood · <em>Vocab:</em> Persuasion at Work</li>
+  </ul>
+
+  <div class="speak-box">
+    <div class="timer" id="timer">0:00</div>
+    <div class="mic-status" id="micStatus">Tap the button and start speaking.</div>
+    <div class="btnrow" style="justify-content:center;">
+      <button class="btn" id="recBtn" style="margin-top:6px;" onclick="toggleRec()">🎤 Start speaking</button>
+    </div>
+    <div class="transcript" id="transcript">Your words will appear here…</div>
+  </div>
+  <div class="tip">Tip: if the microphone doesn't start, allow mic access in your
+  browser, or just keep going — your "Finish" button still works.</div>
+  <div class="feedback info" id="speakFb"></div>
+  <button class="btn" onclick="go(5)">Next: Language in Use →</button>
+</div>
+
+<!-- ===================== SCREEN 5 — LANGUAGE IN USE ===================== -->
+<div class="screen" id="s5">
+  <div class="progress"><span class="done"></span><span class="done"></span><span class="done"></span><span class="done"></span><span class="now"></span></div>
+  <h2><span class="tag">5 · Language</span> Mixed Grammar Review</h2>
+  <div class="intro-note">Ten questions covering everything from the term —
+  narrative tenses, modals, future certainty, connectors, hedging, comparatives,
+  passive voice, reported speech, conditionals, and the subjunctive. Choose the
+  best option for each.</div>
+
+  <div id="luQs"></div>
+  <button class="btn" onclick="finish()">See my results & finish →</button>
+</div>
+
+<!-- ===================== SCREEN 6 — RESULTS ===================== -->
+<div class="screen" id="s6">
+  <div class="brand">English Class · SQA Education</div>
+  <h1 style="margin-bottom:14px;">Nice work! 🎉</h1>
+  <div class="scorebig" id="finalPct">0%</div>
+  <div class="scoreline" id="finalLine">—</div>
+  <div class="breakdown" id="breakdown"></div>
+  <div style="background:var(--lilac);border:1px solid var(--line);border-radius:11px;
+       padding:12px 15px;font-size:.88rem;color:var(--purple-dark);margin:4px 0 8px;">
+    ℹ️ This score shows the <strong>75 auto-graded points</strong> (listening,
+    vocabulary, speaking, language). Your <strong>writing is worth 25 more points</strong>
+    and will be graded by your teacher — so your final mark will be higher than the number above.
+  </div>
+  <p style="font-size:.9rem;color:var(--muted);">Your answers, writing, and spoken
+  story are recorded below. Press Finish to send everything to your teacher.</p>
+  <button class="btn" id="finishBtn" onclick="submitAll()">Finish →</button>
+  <div class="success" id="successMsg">✓ Sent! Your homework is complete. You can close this page.</div>
+</div>
+
+</div>
+<div style="text-align:center;color:var(--muted);font-size:.8rem;margin-top:16px;">
+  SQA Education · Conversation Course · Term III 2026
+</div>
+</div>
+
+<iframe name="sqa_sink" style="display:none;"></iframe>
+
+<script>
+/* ---------- state ---------- */
+const STATE={reading:0,vocab:0,writing:0,speaking:0,lu:0,
+  writingText:"",spokenText:"",speakSecs:0};
+const MAX={reading:20,vocab:20,writing:0,speaking:25,lu:10};
+const TOTAL=100;
+
+/* ---------- class sections ---------- */
+(function(){
+  const sel=document.getElementById('classSelect');
+  CONFIG.CLASSES.forEach((c,i)=>{
+    const o=document.createElement('option');
+    o.value=i;o.textContent=c.label;sel.appendChild(o);
+  });
+})();
+
+/* ---------- navigation ---------- */
+function go(n){
+  if(n===1){
+    const nm=document.getElementById('studentName').value.trim();
+    if(!nm){alert('Please type your name first.');return;}
+  }
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById('s'+n).classList.add('active');
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+/* ===================== SECTION 1 — READING ===================== */
+const readingBank=[
+  {q:"1. What triggered the initial change in how the public viewed unexplained aerial phenomena?",
+   opts:["A sudden shift in mainstream media editorial policies.",
+         "A profound, well-documented event in a valley town.",
+         "The immediate disclosure of military radar logs.",
+         "A sensational headline published in a local tabloid."],
+   answer:1},
+  {q:"2. Why did the government's weather balloon explanation fail to satisfy the public?",
+   opts:["Elena Vance proved the government had an unfair bias.",
+         "The justification did not match the massive scale of what people witnessed.",
+         "The official statement was leaked before it was finalized.",
+         "Tabloid sensationalism had already convinced everyone of an invasion."],
+   answer:1},
+  {q:"3. What was the direct consequence of the military releasing their radar logs?",
+   opts:["Scientists had to revise existing theories about physical movement and speed.",
+         "The government successfully hid its underlying agenda from the public.",
+         "Elena Vance was forced to defend the credibility of her analog photographs.",
+         "Public interest in the valley town declined rapidly."],
+   answer:0},
+  {q:"4. What can be inferred about Elena Vance's role in the incident?",
+   opts:["She was employed by the government to document the event objectively.",
+         "Her training as a journalist helped prevent widespread panic in the town.",
+         "Her decision to use an analog camera was crucial because electronics had failed.",
+         "She had prior knowledge that the encounter was going to happen that night."],
+   answer:2},
+  {q:"5. Based on the conclusion of the audio, what is the podcaster's stance on the existence of unconventional phenomena?",
+   opts:["The author is skeptical and believes the mainstream media is exaggerating the event.",
+         "The author believes it is certain that humanity will have similar experiences in the future.",
+         "The author thinks the scientific community is acting with an unfair prejudice.",
+         "The author feels relieved that the authorities finally explained everything clearly."],
+   answer:1}
+];
+(function(){
+  const c=document.getElementById('readingQs');
+  readingBank.forEach((item,i)=>{
+    const d=document.createElement('div');d.className='q';
+    let h='<div class="qtext">'+item.q+'</div>';
+    item.opts.forEach((o,j)=>{
+      h+='<label class="opt" data-q="'+i+'"><input type="radio" name="r'+i+'" value="'+j+'">'+o+'</label>';
+    });
+    d.innerHTML=h;c.appendChild(d);
+  });
+  c.querySelectorAll('.opt').forEach(opt=>{
+    opt.addEventListener('click',()=>{
+      const qi=opt.dataset.q;
+      c.querySelectorAll('.opt[data-q="'+qi+'"]').forEach(o=>o.classList.remove('sel'));
+      opt.classList.add('sel');opt.querySelector('input').checked=true;
+    });
+  });
+})();
+function scoreReading(){
+  let correct=0;
+  readingBank.forEach((item,i)=>{
+    const sel=document.querySelector('input[name="r'+i+'"]:checked');
+    const wrap=document.querySelectorAll('#readingQs .q')[i];
+    if(sel){
+      const val=+sel.value;
+      wrap.querySelectorAll('.opt')[item.answer].classList.add('correct');
+      if(val===item.answer)correct++;
+      else wrap.querySelectorAll('.opt')[val].classList.add('wrong');
+    }
+  });
+  STATE.reading=Math.round(correct/readingBank.length*MAX.reading);
+}
+
+/* ===================== SECTION 2 — VOCABULARY CLOZE (story) ===================== */
+const vocabWords=["Proactive","Fluctuate","Deteriorate","Turnkey","Proximity","Overconsumption","Quantitative","Stakeholder","Consensus","Dismantle"];
+const vocabBank=[
+  {a:"Proactive"},{a:"Stakeholder"},{a:"Fluctuate"},{a:"Consensus"},
+  {a:"Dismantle"},{a:"Quantitative"},{a:"Turnkey"},{a:"Proximity"}
+];
+const storyParts=[
+  "When our tech company merged with an international partner, our manager took a ",
+  " approach by organizing a cultural workshop before any conflicts could even arise. Every major ",
+  ", from senior executives to entry-level software developers, was invited to share their input. At first, individual opinions seemed to ",
+  " wildly between excitement and deep anxiety depending on the day. However, after weeks of discussion, we finally reached a ",
+  " that everyone could agree on. The next step was to ",
+  " our outdated physical servers and shift entirely to cloud-based storage. We gathered ",
+  " data, looking at the exact numbers and gigabytes required, to ensure the new system would work. Our goal was to find a ",
+  " cloud platform that was ready for immediate use without requiring complex custom coding. Thanks to the close ",
+  " of our local and overseas offices working side-by-side online, the entire transition was incredibly smooth."
+];
+(function(){
+  const wb=document.getElementById('wordbank');
+  vocabWords.forEach(w=>{const c=document.createElement('span');c.className='chip';c.textContent=w;wb.appendChild(c);});
+  let opts='<option value="">— ? —</option>';
+  vocabWords.forEach(w=>{opts+='<option value="'+w+'">'+w+'</option>';});
+  let html='<div class="passage" style="font-size:.95rem;line-height:2.2;">';
+  for(let i=0;i<vocabBank.length;i++){
+    html+=storyParts[i]+'<strong>'+(i+1)+'.</strong> <select id="v'+i+'" style="width:auto;display:inline-block;margin:0 2px;padding:4px 8px;font-size:.9rem;">'+opts+'</select>';
+  }
+  html+=storyParts[vocabBank.length]+'</div>';
+  document.getElementById('vocabQs').innerHTML=html;
+})();
+function scoreVocab(){
+  let correct=0;
+  vocabBank.forEach((item,i)=>{
+    const v=document.getElementById('v'+i).value;
+    if(v && v.toLowerCase()===item.a.toLowerCase())correct++;
+  });
+  STATE.vocab=Math.round(correct/vocabBank.length*MAX.vocab);
+}
+
+/* ===================== SECTION 3 — WRITING (teacher-graded) ===================== */
+function checkWriting(){
+  const txt=document.getElementById('writingText').value.trim();
+  STATE.writingText=txt;
+  const fb=document.getElementById('writingFb');
+  const words=txt.split(/\s+/).filter(Boolean);
+  const sentences=txt.split(/[.!?]+/).map(s=>s.trim()).filter(Boolean);
+  let msg='<strong>Saved \u2014 your teacher will read and grade this.</strong><br>';
+  msg+='\ud83d\udcdd '+words.length+' words \u00b7 '+sentences.length+' sentences';
+  if(words.length<15)msg+='<br>\ud83d\udca1 This looks short \u2014 try to write a bit more before moving on.';
+  fb.innerHTML=msg;fb.className='feedback show info';
+  document.getElementById('writingNext').style.display='inline-block';
+}
+
+/* ===================== SECTION 4 — SPEAKING ===================== */
+let recognition=null,recording=false,timerInt=null,secs=0;
+const SPEAK_TARGET=60;
+const LESSON_WORDS=["proactive","stakeholder","fluctuate","consensus","dismantle",
+  "quantitative","turnkey","proximity","metric","aggregate","analyze","invest","forecast",
+  "encounter","passive","comparative","conditional","subjunctive","negotiate","win-win",
+  "would","if","essential","propose","emphatic","hedging","disclosure","credible"];
+function fmt(s){return Math.floor(s/60)+':'+String(s%60).padStart(2,'0');}
+function toggleRec(){recording?stopRec():startRec();}
+function startRec(){
+  secs=0;document.getElementById('timer').textContent='0:00';
+  STATE.spokenText='';
+  const tEl=document.getElementById('transcript');
+  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+  recognition=null;
+  if(SR){
+    try{
+      recognition=new SR();
+      recognition.continuous=true;
+      recognition.interimResults=true;
+      recognition.lang='en-US';
+      let finalT='';
+      recognition.onresult=e=>{
+        let interim='';
+        for(let i=e.resultIndex;i<e.results.length;i++){
+          const t=e.results[i][0].transcript;
+          if(e.results[i].isFinal)finalT+=t+' ';else interim+=t;
+        }
+        STATE.spokenText=(finalT+interim).trim();
+        tEl.textContent=STATE.spokenText||'Listening…';
+      };
+      recognition.onerror=ev=>{
+        if(ev.error==='not-allowed'||ev.error==='service-not-allowed'){
+          document.getElementById('micStatus').textContent=
+            'Microphone blocked. Allow mic access in your browser, then tap Start again.';
+        } else if(ev.error==='no-speech'){
+          /* harmless on Safari — ignore */
+        } else {
+          document.getElementById('micStatus').textContent=
+            'Speech capture paused — keep speaking out loud, your time still counts.';
+        }
+      };
+      recognition.onend=()=>{
+        if(recording){try{recognition.start();}catch(e){}}
+      };
+      recognition.start();
+    }catch(e){
+      recognition=null;
+      document.getElementById('micStatus').textContent=
+        'Speech capture unavailable here — speak out loud, then press Next.';
+    }
+  } else {
+    document.getElementById('micStatus').textContent=
+      'This browser can\u2019t transcribe speech — speak out loud, then press Next.';
+  }
+  recording=true;
+  document.getElementById('recBtn').textContent='\u23f9 Stop';
+  document.getElementById('micStatus').innerHTML='<span class="pulse"></span>Recording \u2014 tell your story!';
+  timerInt=setInterval(()=>{secs++;document.getElementById('timer').textContent=fmt(secs);},1000);
+}
+function stopRec(){
+  recording=false;
+  if(recognition){try{recognition.onend=null;recognition.stop();}catch(e){}}
+  clearInterval(timerInt);
+  STATE.speakSecs=secs;
+  document.getElementById('recBtn').textContent='\ud83c\udfa4 Speak again';
+  document.getElementById('micStatus').textContent='Stopped. You can speak again or move on.';
+  scoreSpeaking();
+}
+function scoreSpeaking(){
+  const txt=(STATE.spokenText||'').trim();
+  const words=txt.split(/\s+/).filter(Boolean);
+  const low=txt.toLowerCase();
+  const fb=document.getElementById('speakFb');
+  let score=0;
+  const isReal=words.length>=6;
+  if(isReal){
+    if(STATE.speakSecs>=SPEAK_TARGET)score+=12;
+    else if(STATE.speakSecs>=40)score+=9;
+    else if(STATE.speakSecs>=20)score+=6;
+    else score+=3;
+    if(words.length>=60)score+=7;
+    else if(words.length>=30)score+=5;
+    else if(words.length>=12)score+=3;
+    else score+=1;
+    const hits=[...new Set(LESSON_WORDS.filter(w=>low.includes(w)))];
+    score+=Math.min(hits.length,3)*2;
+  }
+  score=Math.min(score,MAX.speaking);
+  STATE.speaking=score;
+  let msg='<strong>'+(isReal?'Great — '+score+'/'+MAX.speaking+' points.':'Speak a little more to score points — but you can still continue.')+'</strong><br>';
+  msg+='🎙️ '+STATE.speakSecs+' seconds · '+words.length+' words spoken';
+  fb.innerHTML=msg;fb.className='feedback show '+(score>=15?'ok':'info');
+}
+
+/* ===================== SECTION 5 — LANGUAGE IN USE ===================== */
+const luBank=[
+  {q:"1. Narrative Tenses: By the time the police arrived to interview the witnesses, the witness who had the most unusual ___ with the suspect ___ from the scene.",
+   opts:["encounter / vanished","encounter / had vanished","encounter / has vanished","encounter / vanishing"],
+   answer:1},
+  {q:"2. Modals: The defense attorney argued that his client had a perfect alibi, but given the overwhelming fingerprint evidence found at the crime scene, the jury decided that the story ___ possibly be credible.",
+   opts:["mustn't","shouldn't","couldn't","needn't"],
+   answer:2},
+  {q:"3. Future Tense with Degree of Certainty: According to the latest financial projection released by our analytical team this morning, our core market share ___ by an estimated twelve percent by the end of next quarter.",
+   opts:["is expanding","expands","going to expand","will expand"],
+   answer:3},
+  {q:"4. Cause and Effect Connectors: The factory manager decided to pause the assembly line ___ the machinery parts had started to deteriorate from lack of maintenance.",
+   opts:["because of","since","owing to","consequently"],
+   answer:1},
+  {q:"5. Hedging Language: Based on the third-quarter data analytics, there ___ to be a clear trend toward remote work options, though a few outlier companies still resist the shift.",
+   opts:["would appear","definitely is","is arguably","manifests"],
+   answer:0},
+  {q:"6. Emphatic Comparatives: After we switched to the new software system, our weekly output became ___ substantial than it had ever been under the old framework.",
+   opts:["far more","very much","easily most","significantly as"],
+   answer:0},
+  {q:"7. Passive Voice: The company was completely blindsided by the financial scandal because at no point during the audit ___ any public disclosure of the missing funds.",
+   opts:["was it made","was there made","had they made","was there a"],
+   answer:2},
+  {q:"8. Reported Speech / Back-shifting: Direct speech — \"Your presentation has persuaded us to sign the contract.\" During the negotiation yesterday, the client explicitly told us that our presentation ___ them to sign the contract, which is why they are finalizing the paperwork today.",
+   opts:["had persuaded","has persuaded","persuades","will persuade"],
+   answer:0},
+  {q:"9. Persuasive Second Conditionals: If your engineering team ___ a more feasible implementation plan right now, the primary stakeholders would back you up without any hesitation.",
+   opts:["presents","were to present","would present","had presented"],
+   answer:1},
+  {q:"10. Subjunctive Mood: To ensure the long-term well-being of the staff, it is absolutely vital that the human resources department ___ mental health initiatives immediately.",
+   opts:["prioritizes","prioritize","will prioritize","prioritized"],
+   answer:1}
+];
+(function(){
+  const c=document.getElementById('luQs');
+  luBank.forEach((item,i)=>{
+    const d=document.createElement('div');d.className='q';
+    let h='<div class="qtext">'+item.q+'</div>';
+    item.opts.forEach((o,j)=>{
+      const letter=String.fromCharCode(65+j);
+      h+='<label class="opt" data-q="'+i+'"><input type="radio" name="lu'+i+'" value="'+j+'"><strong>'+letter+')</strong> '+o+'</label>';
+    });
+    d.innerHTML=h;c.appendChild(d);
+  });
+  c.querySelectorAll('.opt').forEach(opt=>{
+    opt.addEventListener('click',()=>{
+      const qi=opt.dataset.q;
+      c.querySelectorAll('.opt[data-q="'+qi+'"]').forEach(o=>o.classList.remove('sel'));
+      opt.classList.add('sel');opt.querySelector('input').checked=true;
+    });
+  });
+})();
+function scoreLU(){
+  let correct=0;
+  luBank.forEach((item,i)=>{
+    const sel=document.querySelector('input[name="lu'+i+'"]:checked');
+    const wrap=document.querySelectorAll('#luQs .q')[i];
+    if(sel){
+      const val=+sel.value;
+      wrap.querySelectorAll('.opt')[item.answer].classList.add('correct');
+      if(val===item.answer)correct++;
+      else wrap.querySelectorAll('.opt')[val].classList.add('wrong');
+    }
+  });
+  STATE.lu=Math.round(correct/luBank.length*MAX.lu);
+}
+
+/* ===================== RESULTS ===================== */
+function finish(){
+  scoreReading();scoreVocab();scoreLU();
+  if(!STATE.writingText)STATE.writingText=document.getElementById('writingText').value.trim();
+  const pct=Math.round(
+    (STATE.reading+STATE.vocab+STATE.writing+STATE.speaking+STATE.lu)/TOTAL*100);
+  document.getElementById('finalPct').textContent=pct+'%';
+  document.getElementById('finalLine').textContent=
+    (pct>=75?'Top marks on the auto-graded sections!':pct>=50?'Good effort — keep practicing!':'Completed!');
+  const bd=document.getElementById('breakdown');
+  bd.innerHTML=
+    row('Listening comprehension',STATE.reading,MAX.reading)+
+    row('Vocabulary — cloze',STATE.vocab,MAX.vocab)+
+    writingRow()+
+    row('Speaking — your dialogue ⭐',STATE.speaking,MAX.speaking)+
+    row('Mixed grammar review',STATE.lu,MAX.lu)+
+    row('Total',STATE.reading+STATE.vocab+STATE.writing+STATE.speaking+STATE.lu,TOTAL);
+  go(6);
+}
+function row(label,got,max){
+  return '<div><span>'+label+'</span><span>'+got+' / '+max+'</span></div>';
+}
+function writingRow(){
+  return '<div><span>Writing</span><span style="color:var(--purple-light);">graded by teacher</span></div>';
+}
+
+/* ===================== SILENT SUBMIT ===================== */
+function submitAll(){
+  const pct=Math.round(
+    (STATE.reading+STATE.vocab+STATE.writing+STATE.speaking+STATE.lu)/TOTAL*100);
+  const E=CONFIG.ENTRY;
+  const data={};
+  const chosen=CONFIG.CLASSES[+document.getElementById('classSelect').value]||CONFIG.CLASSES[0];
+  data[E.studentName]=document.getElementById('studentName').value.trim();
+  data[E.classCode]=chosen.code;
+  data[E.session]=CONFIG.SESSION_LABEL;
+  data[E.listening]=STATE.reading;
+  data[E.vocab]=STATE.vocab;
+  data[E.writing]="";
+  data[E.speaking]=STATE.speaking;
+  data[E.grammar]=STATE.lu;
+  data[E.percent]=pct;
+  data[E.writingText]=STATE.writingText||'(none)';
+  data[E.aiFeedback]=STATE.spokenText||'';
+  data[E.teacher]=chosen.teacher;
+
+  const f=document.createElement('form');
+  f.action=CONFIG.FORM_URL;f.method='POST';f.target='sqa_sink';
+  for(const k in data){
+    const inp=document.createElement('input');
+    inp.type='hidden';inp.name=k;inp.value=data[k];f.appendChild(inp);
+  }
+  document.body.appendChild(f);
+  try{f.submit();}catch(e){}
+  document.getElementById('finishBtn').style.display='none';
+  document.getElementById('successMsg').classList.add('show');
+  window.scrollTo({top:document.body.scrollHeight,behavior:'smooth'});
+}
+</script>
+</body>
+</html>
